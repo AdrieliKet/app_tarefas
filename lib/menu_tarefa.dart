@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter_crud/formulario.dart';
 
 class Menu extends StatelessWidget {
   Future<List<Map<String, Object?>>> buscarDados() async {
@@ -23,6 +24,17 @@ class Menu extends StatelessWidget {
     List<Map<String, Object?>> lista =
         await db.rawQuery('SELECT * FROM tarefa');
     return lista;
+  }
+
+  Future<int> delete(String id) async {
+    Future<int> linhasAfetadas;
+    String caminho = join(await getDatabasesPath(), 'banco.db');
+    Database banco = await openDatabase(caminho, version: 1);
+
+    String? sql;
+    sql = 'DELETE FROM tarefa WHERE nome = ?';
+    linhasAfetadas = banco.rawDelete(sql, [id]);
+    return linhasAfetadas;
   }
 
   @override
@@ -55,20 +67,49 @@ class Menu extends StatelessWidget {
       ),
       body: FutureBuilder(
         future: buscarDados(),
-        builder: (context, AsyncSnapshot<List<Map<String,Object?>>> dadosFuturos) {
+        builder:
+            (context, AsyncSnapshot<List<Map<String, Object?>>> dadosFuturos) {
           if (!dadosFuturos.hasData) return CircularProgressIndicator();
           var listaTarefa = dadosFuturos.data!;
-          return ListView.builder(  
-            itemCount: listaTarefa.length,
-            itemBuilder: (context, contador){
-              var tarefa = listaTarefa[contador];
-              return ListTile(  
-                title: Text(tarefa['nome'].toString()),
-                subtitle: Text(tarefa['descricao'].toString(),),
-              );
-            }
-
-          );
+          return ListView.builder(
+              itemCount: listaTarefa.length,
+              itemBuilder: (context, contador) {
+                var tarefa = listaTarefa[contador];
+                return ListTile(
+                    title: Text(tarefa['nome'].toString()),
+                    subtitle: Text(
+                      tarefa['descricao'].toString(),
+                    ),
+                    trailing: Wrap(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/');
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () => showDialog(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (context) => AlertDialog(
+                                title: Text("Confirma exclusão?"),
+                                actions: [
+                                  TextButton(
+                                    child: Text("Sim"),
+                                    onPressed: () => (delete(tarefa['id'].integer.parse())),
+                                  ),
+                                  TextButton(
+                                    child: Text("Não"),
+                                    onPressed: () => Navigator.of(context).pop(),
+                                  ),
+                                ]),
+                          ),
+                        ),
+                      ],
+                    ));
+              });
         },
       ),
     );
