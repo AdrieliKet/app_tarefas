@@ -26,7 +26,7 @@ class Menu extends StatelessWidget {
     return lista;
   }
 
-  Future<int> delete(String id) async {
+  Future<int> delete(int id) async {
     Future<int> linhasAfetadas;
     String caminho = join(await getDatabasesPath(), 'banco.db');
     Database banco = await openDatabase(caminho, version: 1);
@@ -98,7 +98,7 @@ class Menu extends StatelessWidget {
                                 actions: [
                                   TextButton(
                                     child: Text("Sim"),
-                                    onPressed: () => (delete(tarefa['id'].integer.parse())),
+                                    onPressed: () => (delete(int.parse(tarefa['id'].toString()))),
                                   ),
                                   TextButton(
                                     child: Text("Não"),
